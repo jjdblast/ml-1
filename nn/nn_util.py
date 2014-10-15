@@ -52,23 +52,35 @@ def data_iterator(x, y, n_epochs=2, batch_size=256, shuffle_on=True):
         for j in range(0, x.shape[0], batch_size):
             yield x[j:j+batch_size], y[j:j+batch_size], i
 
-def sgd(cost_func, initial_guess, x, y, n_epochs=100, batch_size=256, lr=0.1, lr_decay=None, tol=1e-5, verbose=True, display=True):
+def operation_per_epoch(params):
+    w0 = params[:8*8*25].reshape(25, 8, 8)
+    show_image_grid(w0)
+
+def sgd(cost_func, initial_guess, x, y, n_epochs=100, batch_size=1024, lr=0.025, lr_decay=None, tol=1e-5, verbose=False, display=False, callback=None):
     params = initial_guess
     cost_ = 0
     iter_counter = 0
+    if display:
+        ilp = IterLinePlotter()
+
     for x_, y_, i_epoch in data_iterator(x, y, n_epochs, batch_size):
         cost, grads = cost_func(params, x_, y_)
         if np.abs(cost - cost_) < tol:
             break
         params -= lr * grads
         cost_ = cost
+
+        if callback is not None:
+            callback(params)
+
         if verbose:
-            print 'iter: {0},\tcost: {1}'.format(iter_counter, cost_)
+            print 'epoch: {2}, iter: {0},\tcost: {1}'.format(iter_counter, cost_, i_epoch)
         if display:
+#            ilp.update(1, iter_counter, cost_)
+            ilp.update(2, iter_counter, np.log10(cost_))
 
         iter_counter += 1
     return {'x': params}
-
 
 def compute_numeric_grad(cost_func, params, eps=1e-5, **kwargs):
     numeric_grad = np.empty(shape=params.shape)
@@ -110,4 +122,48 @@ def show_image_grid(x):
             ax[i,j].imshow(x[k], cmap='gray')
     pl.show()
 
-def 
+class IterLinePlotter(object):
+    def __init__(self):
+        fig, ax = pl.subplots(1,1)
+        self.fig_ = fig
+        self.ax_ = ax
+        self.bank_ = {}
+        self.count_ = 0
+
+    def update(self, id_, xdata, ydata):
+        if id_ not in self.bank_:
+            line, = self.ax_.plot([], [])
+            self.bank_[id_] = line
+        line = self.bank_[id_]
+        line.set_xdata(np.append(line.get_xdata(), xdata))
+        line.set_ydata(np.append(line.get_ydata(), ydata))
+        pl.pause(0.0001)
+        self.ax_.relim()
+        self.ax_.autoscale_view()
+        self.fig_.canvas.draw()
+            
+def stack_image_grid(data):
+    n, h, w = data.shape
+    r = int(np.round(np.sqrt(n)))
+    c = int(np.ceil(n / float(r)))
+    res = np.zeros((r*h, c*w))
+    grid = np.ogrid[:h, :w]
+    for i in range(r):
+        for j in range(c):
+            k = i*c+j
+            if k >= n:
+                break
+            res[i*h+grid[0], j*w+grid[1]] = data[k]
+    return res
+
+def plot_per_iteration():
+    shape_ = [self.w0_.shape[0], int(np.sqrt(self.w0_.shape[1])), int(np.sqrt(self.w0_.shape[1]))]
+    tmp = stack_image_grid(self.w0_.reshape(shape_))
+    im = pl.imshow(tmp, cmap='gray', interpolation='gaussian')
+    def plot_(p):
+        tmp = shape_[0] * shape_[1] * shape_[2]
+        tmp = p[:tmp].reshape(shape_)
+        tmp = stack_image_grid(tmp)
+        im.set_data(tmp)
+        pl.pause(0.001)
+        pl.draw()

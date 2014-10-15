@@ -56,11 +56,38 @@ class SAE(object):
         grads = pack_params(*unpacked_grads)
         return cost, grads
 
-    def train(self, x, y, n_epochs=400):
+    def train(self, x, y, n_epochs=400, x_validate=None, y_validate=None, display=False):
+        _plot = None
+        if display:
+            ilp = IterLinePlotter()
+            _plot = lambda p: self._display(p, x, y, x_validate, y_validate, ilp)
+
         params = pack_params(self.w0_, self.w1_, self.b0_, self.b1_)
-#        res = optimize.minimize(self._cost_wraper, params, args=(x, y),
-#                    method='L-BFGS-B', jac=True, options={'maxiter': n_epochs, 'iprint': True})
-        res = sgd(self._cost_wraper, params, x, y, n_epochs)
-        return res
+        res = optimize.minimize(self._cost_wraper, params, args=(x, y),
+                    method='L-BFGS-B', jac=True, 
+                    options={'maxiter': n_epochs, 'iprint': True},
+                    callback=_plot)
+
+        shapes = [self.w0_.shape, self.w1_.shape, self.b0_.shape, self.b1_.shape]
+        self.w0_, self.w1_, self.b0_, self.b1_ = unpack_params(res.x, shapes)
+
+    def _reconstruction_error(self, x, y):
+        a0 = x
+        z0 = np.dot(a0, self.w0_.T) + self.b0_
+        a1 = sigmoid(z0)
+        z1 = np.dot(a1, self.w1_.T) + self.b1_
+        a2 = sigmoid(z1)
+        n_examples = x.shape[0]
+        error = 0.5 / n_examples * np.sum((a2 - y)**2)
+        return error
+
+    def _display(self, params, x, y, x_validate, y_validate, ilp):
+        cost = self._reconstruction_error(x, y)
+        ilp.update(1, ilp.count_, cost)
+        if x_validate is not None and y_validate is not None:
+            cost_validate = self._reconstruction_error(x_validate, y_validate)
+            ilp.update(2, ilp.count_, cost_validate)
+        ilp.count_ += 1
+
 
 
