@@ -88,6 +88,3 @@ class SAE(object):
             cost_validate = self._reconstruction_error(x_validate, y_validate)
             ilp.update(2, ilp.count_, cost_validate)
         ilp.count_ += 1
-
-
-

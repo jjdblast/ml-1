@@ -12,8 +12,8 @@ def test_SAE_mnist():
 
     x = normalize_3sigma(patches[:-5000])
     x_validate = normalize_3sigma(patches[-5000:])
-    sae = SAE(8*8, 25, weight_decay=1e-4, sparsity_control=3, sparsity=1e-2)
-    sae.train(x, x, 300, x_validate, x_validate, True)
+    sae = SAE(8*8, 36, weight_decay=1e-4, sparsity_control=0, sparsity=1e-2)
+    sae.train(x, x, 100, x_validate, x_validate, True)
     show_image_grid(sae.w0_.reshape(-1, 8,8))
 
 if __name__ == '__main__':

@@ -52,10 +52,6 @@ def data_iterator(x, y, n_epochs=2, batch_size=256, shuffle_on=True):
         for j in range(0, x.shape[0], batch_size):
             yield x[j:j+batch_size], y[j:j+batch_size], i
 
-def operation_per_epoch(params):
-    w0 = params[:8*8*25].reshape(25, 8, 8)
-    show_image_grid(w0)
-
 def sgd(cost_func, initial_guess, x, y, n_epochs=100, batch_size=1024, lr=0.025, lr_decay=None, tol=1e-5, verbose=False, display=False, callback=None):
     params = initial_guess
     cost_ = 0
@@ -76,8 +72,7 @@ def sgd(cost_func, initial_guess, x, y, n_epochs=100, batch_size=1024, lr=0.025,
         if verbose:
             print 'epoch: {2}, iter: {0},\tcost: {1}'.format(iter_counter, cost_, i_epoch)
         if display:
-#            ilp.update(1, iter_counter, cost_)
-            ilp.update(2, iter_counter, np.log10(cost_))
+            pass
 
         iter_counter += 1
     return {'x': params}
