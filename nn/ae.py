@@ -25,14 +25,14 @@ class SAE(object):
                (0.5 * self.weight_decay_) * \
                np.sum(np.sum(self.w0_**2) + np.sum(self.w1_**2)) + \
                self.sparsity_control_ * np.sum(kl(self.sparsity_, sparsity_hat))
-        
+
         # bprop
         '''
         \nabla_{a2}cost = 1.0/n_examples * \Sigma(a2-y),
         \nabla_{w1}a2 = a2*(1-a2) * a1,
         \nabla_{a1}a2 = a2*(1-a2) * w1
         \nabla_{w0}a1 = a1*(1-a1) * a0,
-        
+
         \nabla_{w0}kl = \nabla_{a1}kl * \nabla_{w0}a1
 
         \nabla{w1}cost = \nabla_{a2}cost * \nabla_{w1}a2  + weight_decay*w1,
@@ -87,4 +87,5 @@ class SAE(object):
         if x_validate is not None and y_validate is not None:
             cost_validate = self._reconstruction_error(x_validate, y_validate)
             ilp.update(2, ilp.count_, cost_validate)
+        ilp.draw()
         ilp.count_ += 1
