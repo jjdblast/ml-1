@@ -83,7 +83,6 @@ class Net(object):
                     ilp.draw()
                     ilp.count_ += 1
 
-
     def predict(self, x):
         self.fprop(x, False)
         return self.layers_[-1].out_

@@ -12,7 +12,7 @@ def init_weights(shape, eps=None, random_type='uniform'):
 
     m, n = shape
     if eps is None:
-        eps = np.sqrt(6.0 / (m + n + 1))
+        eps = 4 * np.sqrt(6.0 / (m + n))
     return random_generator[random_type](low=-eps, high=eps, size=shape)
 
 def pack_params(*params):
@@ -46,7 +46,7 @@ def kl_prime(x, x_hat):
     '''
     return -x / x_hat + (1-x) / (1-x_hat)
 
-def data_iterator(x, y, batch_size=256, shuffle=True):
+def data_iterator(x, y, batch_size=256, shuffle=False):
     if shuffle:
         rng = np.random.RandomState()
         seed = np.random.randint(1000)

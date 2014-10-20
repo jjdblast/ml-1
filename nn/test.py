@@ -75,11 +75,10 @@ def test_Net_ae():
     net = Net([['full', 28*28, {}],
                ['sig', 500, {}],
                ['full', 500, {}],
-               ['sig', 28*28, {}]], base_lr=0.1, decay=0.0, momentum=0.7)
+               ['sig', 28*28, {}]], base_lr=0.1, decay=0.0, momentum=0.0)
 
-    net.train(x, x, 13, 20, 1, None, None, True)
+    net.train(x, x, 15, 20, 1, None, None, False)
     tmp = tile_images(net.layers_[0].w_, (28,28), (10,10))
-    pl.figure()
     pl.imshow(tmp, cmap='gray')
     pl.show()
 

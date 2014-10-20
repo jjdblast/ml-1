@@ -89,3 +89,6 @@ class SAE(object):
             ilp.update(2, ilp.count_, cost_validate)
         ilp.draw()
         ilp.count_ += 1
+
+class DAE(object):
+    def __init__(self):
