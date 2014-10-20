@@ -8,15 +8,21 @@ random_generator = {
 }
 
 def init_weights(shape, eps=None, random_type='uniform'):
+    '''Xavier initialization. '''
+
     m, n = shape
     if eps is None:
         eps = np.sqrt(6.0 / (m + n + 1))
     return random_generator[random_type](low=-eps, high=eps, size=shape)
 
 def pack_params(*params):
+    '''Flatten all params and stack them into one 1-d array. '''
+
     return np.concatenate([param.ravel() for param in params])
 
 def unpack_params(params, shapes=((10,5), (5,10), (10,), (5,))):
+    '''Extract all params and reshape them by `shapes`. '''
+
     unpacked_params = []
     borders = np.cumsum([reduce(np.multiply, shape) for shape in shapes])
     i = 0
@@ -30,6 +36,8 @@ def sigmoid(x):
     return 1.0 / (1 + np.exp(-x))
 
 def kl(x, x_hat):
+    '''kl divergence. '''
+
     return x * np.log(x / x_hat) + (1-x) * np.log((1-x) / (1-x_hat))
 
 def kl_prime(x, x_hat):
@@ -50,6 +58,8 @@ def data_iterator(x, y, batch_size=256, shuffle=True):
         yield x[j:j+batch_size], y[j:j+batch_size]
 
 def compute_numeric_grad(cost_func, params, eps=1e-5, **kwargs):
+    '''Compute gradients of params the numerical way. '''
+
     numeric_grad = np.empty(shape=params.shape)
     for i in xrange(len(params)):
         params[i] -= eps
@@ -60,6 +70,8 @@ def compute_numeric_grad(cost_func, params, eps=1e-5, **kwargs):
     return numeric_grad
 
 def sample_patches(n_patches, patch_size, images):
+    '''Aimed at sampling image patches from many big images. '''
+
     n_images, r_image, c_image = images.shape
     half = patch_size / 2
     sampled_n = np.random.randint(n_images, size=n_patches)
@@ -76,20 +88,10 @@ def normalize_3sigma(x):
     x = (x + 1) * 0.4 + 0.1
     return x
 
-def show_image_grid(x):
-    n, w, h = x.shape
-    r = int(np.ceil(np.sqrt(n)))
-    c = int(np.ceil(n / float(r)))
-    fig, ax = pl.subplots(r, c)
-    for i in range(r):
-        for j in range(c):
-            k = i*c + j
-            if k >= n:
-                break
-            ax[i,j].imshow(x[k], cmap='gray')
-    pl.show()
-
 class IterLinePlotter(object):
+    '''Aimed at dynamically plotting the train and validation error
+       as training process going on. '''
+
     def __init__(self):
         fig, ax = pl.subplots(1,1)
         self.fig_ = fig
@@ -98,40 +100,37 @@ class IterLinePlotter(object):
         self.count_ = 0
 
     def update(self, id_, xdata, ydata):
+        '''Each line is recognized by `id_`. '''
+
         if id_ not in self.bank_:
             line, = self.ax_.plot([], [])
             self.bank_[id_] = line
         line = self.bank_[id_]
         line.set_xdata(np.append(line.get_xdata(), xdata))
         line.set_ydata(np.append(line.get_ydata(), ydata))
-        pl.pause(0.0001)
 
     def draw(self):
+        '''After updating all the lines, call this function to update the figure. '''
+
+        pl.pause(0.0001)
         self.ax_.relim()
         self.ax_.autoscale_view()
         self.fig_.canvas.draw()
             
-def stack_image_grid(data):
-    n, h, w = data.shape
-    r = int(np.round(np.sqrt(n)))
-    c = int(np.ceil(n / float(r)))
-    res = np.zeros((r*h, c*w))
-    grid = np.ogrid[:h, :w]
-    for i in range(r):
-        for j in range(c):
-            k = i*c+j
-            if k >= n:
-                break
-            res[i*h+grid[0], j*w+grid[1]] = data[k]
-    return res
+def tile_images(data, image_shape, tile_shape, tile_spacing=(1,1), scale=True):
+    '''Tile up 2-d arrays into one single 2-d array which can be 
+       displayed as an image. '''
 
-def tile_images(data, image_shape, tile_shape, tile_spacing=(1,1)):
+    if scale:
+        data -= data.min()
+        data *= 1.0 / (data.max() + 1e-8)
+        data *= 255
     data.shape = (-1, image_shape[0], image_shape[1])
     height = tile_shape[0] * image_shape[0] + \
                   (tile_shape[0] - 1) * tile_spacing[0]
     width = tile_shape[1] * image_shape[1] + \
                 (tile_shape[1] - 1) * tile_spacing[1]
-    tiled = np.zeros((height, width)) + data.min()
+    tiled = np.zeros((height, width))
     k = 0
     for i in range(tile_shape[0]):
         top = i*(image_shape[0]+tile_spacing[0])
@@ -142,15 +141,3 @@ def tile_images(data, image_shape, tile_shape, tile_spacing=(1,1)):
             tiled[top:bot, left:right] = data[k]
             k += 1
     return tiled
-
-def plot_per_iteration():
-    shape_ = [self.w0_.shape[0], int(np.sqrt(self.w0_.shape[1])), int(np.sqrt(self.w0_.shape[1]))]
-    tmp = stack_image_grid(self.w0_.reshape(shape_))
-    im = pl.imshow(tmp, cmap='gray', interpolation='gaussian')
-    def plot_(p):
-        tmp = shape_[0] * shape_[1] * shape_[2]
-        tmp = p[:tmp].reshape(shape_)
-        tmp = stack_image_grid(tmp)
-        im.set_data(tmp)
-        pl.pause(0.001)
-        pl.draw()

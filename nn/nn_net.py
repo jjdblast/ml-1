@@ -56,6 +56,11 @@ class Net(object):
             layer.update(self.updater_)
 
     def train(self, x, y, n_epochs=10, batch_size=128, loss_type=0, x_validate=None, y_validate=None, display=False):
+        '''With `display` being True, train error and validation error 
+           will be plotted via `ilp`, and it will make the training process
+           slower, you can close the figure at any time to speed up the 
+           training process.'''
+
         if display:
             ilp = IterLinePlotter()
 
