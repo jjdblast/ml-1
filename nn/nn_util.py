@@ -117,14 +117,10 @@ class IterLinePlotter(object):
         self.ax_.autoscale_view()
         self.fig_.canvas.draw()
             
-def tile_images(data, image_shape, tile_shape, tile_spacing=(1,1), scale=True):
+def tile_images(data, image_shape, tile_shape, tile_spacing=(1,1)):
     '''Tile up 2-d arrays into one single 2-d array which can be 
        displayed as an image. '''
 
-    if scale:
-        data -= data.min()
-        data *= 1.0 / (data.max() + 1e-8)
-        data *= 255
     data.shape = (-1, image_shape[0], image_shape[1])
     height = tile_shape[0] * image_shape[0] + \
                   (tile_shape[0] - 1) * tile_spacing[0]
@@ -138,6 +134,9 @@ def tile_images(data, image_shape, tile_shape, tile_spacing=(1,1), scale=True):
         for j in range(tile_shape[1]):
             left = j*(image_shape[1]+tile_spacing[1])
             right = left + image_shape[1]
-            tiled[top:bot, left:right] = data[k]
+            tmp = data[k].copy()
+            tmp -= tmp.min()
+            tmp *= 255.0 / (tmp.max() + 1e-8)
+            tiled[top:bot, left:right] = tmp.astype('uint8')
             k += 1
     return tiled

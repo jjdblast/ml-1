@@ -3,6 +3,8 @@ from ae import *
 from nn_util import *
 from nn_net import *
 import time, pickle
+from utils import *
+from PIL import Image
 
 
 def test_SAE_mnist():
@@ -20,14 +22,13 @@ def test_DAE_mnist():
     with open('../ufldl/data/mnist.pkl', 'rb') as fp:
         mnist = pickle.load(fp)
     images = mnist[0][0]
-    x = images[:10000]
+    x = images
 
     dae = DAE(28*28, 500, True)
     dae.train(x, x.copy(), level=0.3, n_epochs=15, batch_size=20)
-    tmp = tile_images(dae.w0_, (28,28), (10,10))
+    tmp = tile_raster_images(dae.w0_, (28,28), (10,10), (1,1))
     pl.imshow(tmp, cmap='gray')
     pl.show()
-
 
 def test_Net_grad_check():
     net = Net([['full', 5, {}],
