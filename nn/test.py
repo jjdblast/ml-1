@@ -15,7 +15,19 @@ def test_SAE_mnist():
     x_validate = normalize_3sigma(patches[-5000:])
     sae = SAE(8*8, 200, weight_decay=0, sparsity_control=0, sparsity=1e-2)
     sae.train(x, x, 50, x_validate, x_validate, True)
-    show_image_grid(sae.w0_.reshape(-1, 8,8))
+
+def test_DAE_mnist():    
+    with open('../ufldl/data/mnist.pkl', 'rb') as fp:
+        mnist = pickle.load(fp)
+    images = mnist[0][0]
+    x = images[:10000]
+
+    dae = DAE(28*28, 500, True)
+    dae.train(x, x.copy(), level=0.3, n_epochs=15, batch_size=20)
+    tmp = tile_images(dae.w0_, (28,28), (10,10))
+    pl.imshow(tmp, cmap='gray')
+    pl.show()
+
 
 def test_Net_grad_check():
     net = Net([['full', 5, {}],
@@ -68,7 +80,6 @@ def test_Net_ae():
     with open('../ufldl/data/mnist.pkl', 'rb') as fp:
         mnist = pickle.load(fp)
     images = mnist[0][0]
-    labels = mnist[0][0]
     x = images[:10000]
     x_validate = images[40000:]
 
@@ -77,11 +88,11 @@ def test_Net_ae():
                ['full', 500, {}],
                ['sig', 28*28, {}]], base_lr=0.1, decay=0.0, momentum=0.0)
 
-    net.train(x, x, 15, 20, 1, None, None, False)
+    net.train(x, x, 10, 20, 1, 1, None, None, True, False)
     tmp = tile_images(net.layers_[0].w_, (28,28), (10,10))
     pl.imshow(tmp, cmap='gray')
     pl.show()
 
 
 if __name__ == '__main__':
-    test_Net_ae()
+    test_DAE_mnist()

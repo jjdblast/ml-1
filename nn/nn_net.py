@@ -50,12 +50,12 @@ class Net(object):
             loss = (self.layers_[-1].out_ - y) / (self.layers_[-1].out_ - self.layers_[-1].out_**2)
         return loss
 
-    def update(self, n_iter_passed):
+    def update(self, n_iter_passed, update_type=0):
         self.updater_.schedule(n_iter_passed)
         for layer in self.layers_:
-            layer.update(self.updater_)
+            layer.update(self.updater_, update_type)
 
-    def train(self, x, y, n_epochs=10, batch_size=128, loss_type=0, x_validate=None, y_validate=None, display=False):
+    def train(self, x, y, n_epochs=10, batch_size=128, loss_type=0, update_type=0, x_validate=None, y_validate=None, evaluate=True, display=False):
         '''With `display` being True, train error and validation error 
            will be plotted via `ilp`, and it will make the training process
            slower, you can close the figure at any time to speed up the 
@@ -67,12 +67,19 @@ class Net(object):
         n_iter_passed = 0
         for i_epoch in range(n_epochs):
             for x_batch, y_batch in data_iterator(x, y, batch_size):
-                print 'iter: {}'.format(n_iter_passed)
                 self.fprop(x_batch)
                 loss = self.calculate_loss(y_batch, loss_type)
                 self.bprop(loss)
-                self.update(n_iter_passed)
-                n_iter_passed += 1
+                self.update(n_iter_passed, update_type)
+    
+                msg = 'iter: {}'.format(n_iter_passed)
+                if evaluate:
+                    train_error = self.evaluate(self.predict(x_batch), y_batch)
+                    msg += ', train error: {}'.format(train_error)
+                    if x_validate is not None and y_validate is not None:
+                        validate_error = self.evaluate(self.predict(x_validate), y_validate)
+                        msg += ', validate error: {}'.format(validate_error)
+                print msg
 
                 if display:
                     train_error = self.evaluate(self.predict(x_batch), y_batch)
@@ -82,6 +89,8 @@ class Net(object):
                         ilp.update(1, ilp.count_, validate_error)
                     ilp.draw()
                     ilp.count_ += 1
+
+                n_iter_passed += 1
 
     def predict(self, x):
         self.fprop(x, False)

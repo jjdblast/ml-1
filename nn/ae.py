@@ -90,5 +90,49 @@ class SAE(object):
         ilp.draw()
         ilp.count_ += 1
 
+
 class DAE(object):
-    def __init__(self):
+    def __init__(self, input_size, hidden_size, tied=False):
+        self.w0_ = init_weights((hidden_size, input_size))
+        self.b0_ = np.zeros(hidden_size)
+
+        self.tied_ = tied
+        self.w1_ = self.w0_.T if self.tied_ else init_weights((input_size, hidden_size))
+        self.b1_ = np.zeros(input_size)
+        self.rng_ = np.random.RandomState(123)
+
+    def corrupt(self, x, level):
+        return self.rng_.binomial(n=1, p=1.0-level, size=x.shape) * x
+
+    def get_cost_grad(self, x, y, level):
+        a0 = self.corrupt(x, level)
+        z0 = np.dot(a0, self.w0_.T) + self.b0_
+        a1 = sigmoid(z0)
+        z1 = np.dot(a1, self.w1_.T) + self.b1_
+        a2 = sigmoid(z1)
+
+        n_examples = x.shape[0]
+        cost = - (y * np.log(a2) + (1-y) * np.log(1-a2)).sum() / n_examples
+        
+        d2 = (a2 - y)
+        w1_grad = np.dot(d2.T, a1) / n_examples
+        b1_grad = d2.mean(axis=0)
+        d1 = np.dot(d2, self.w1_) * a1 * (1 - a1)
+        w0_grad = np.dot(d1.T, a0) / n_examples
+        b0_grad = d1.mean(axis=0)
+        return w0_grad, w1_grad, b0_grad, b1_grad
+
+    def train(self, x, y, level=0.0, lr=0.1, n_epochs=10, batch_size=30):
+        for i_epoch in range(n_epochs):
+            print 'epoch: {}'.format(i_epoch)
+            for x_batch, y_batch in data_iterator(x, y, batch_size):
+                w0_grad, w1_grad, b0_grad, b1_grad = self.get_cost_grad(x_batch, y_batch, level)
+                if self.tied_:
+                    w_grad = w0_grad + w1_grad.T
+                    self.w0_ -= lr * w_grad
+                    self.w1_ = self.w0_.T
+                else:
+                    self.w0_ -= lr * w0_grad
+                    self.w1_ -= lr * w1_grad
+                self.b0_ -= lr * b0_grad
+                self.b1_ -= lr * b1_grad

@@ -130,7 +130,7 @@ def tile_images(data, image_shape, tile_shape, tile_spacing=(1,1), scale=True):
                   (tile_shape[0] - 1) * tile_spacing[0]
     width = tile_shape[1] * image_shape[1] + \
                 (tile_shape[1] - 1) * tile_spacing[1]
-    tiled = np.zeros((height, width))
+    tiled = np.zeros((height, width), dtype='uint8')
     k = 0
     for i in range(tile_shape[0]):
         top = i*(image_shape[0]+tile_spacing[0])
