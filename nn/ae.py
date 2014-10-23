@@ -2,6 +2,8 @@ from nn_util import *
 
 
 class SAE(object):
+    '''Sparse autoencoder, using lbfgs to train.'''
+
     def __init__(self, input_size, hidden_size, weight_decay=1.0, sparsity_control=0.0, sparsity=0.1):
         self.w0_ = init_weights((hidden_size, input_size))
         self.w1_ = init_weights((input_size, hidden_size))
@@ -92,7 +94,11 @@ class SAE(object):
 
 
 class DAE(object):
+    '''Denoising autoencoder, using sgd to train.'''
+
     def __init__(self, input_size, hidden_size, tied=False):
+        '''If `tied` is True, then used tied weights.'''
+
         self.w0_ = init_weights((hidden_size, input_size))
         self.b0_ = np.zeros(hidden_size)
 
@@ -114,6 +120,14 @@ class DAE(object):
         n_examples = x.shape[0]
         cost = - (y * np.log(a2) + (1-y) * np.log(1-a2)).sum() / n_examples
         
+        '''If the weights are tied, then could we still back propagate the error
+        the usual way? In untied cases, we could do it that way because when back
+        propagate error from ith layer to (i-1)th layer, we just hold weights in
+        ith layer constant, and that's ok if the weights are not tied. However, 
+        if weights are tied, we could not do that.
+        Fortunately, we could do it that way, it can be proved. When update untied
+        weights, we should sum up the two gradient matrices.'''
+
         d2 = (a2 - y)
         w1_grad = np.dot(d2.T, a1) / n_examples
         b1_grad = d2.mean(axis=0)

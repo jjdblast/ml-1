@@ -97,3 +97,25 @@ class ReLULayer(ILayer):
 
     def update(self, updater, update_type):
         pass
+
+
+@_register_layer_class('deno')
+class DenoiseLayer(ILayer):
+    '''This layer is for denoising autoencoders, so meant to be used as the first layer,
+       no backprop done in this layer.'''
+
+    def __init__(self, shape, level=0.0, **kwargs):
+        self.level_ = level
+
+    def register_updater(self, updater):
+        pass
+
+    def fprop(self):
+        mask = random_generator['binomial'](1, 1-self.level_, self.in_.shape)
+        self.out_ = self.in_ * mask
+
+    def bprop(self):
+        pass
+
+    def update(self, updater, update_type):
+        pass

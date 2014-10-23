@@ -24,9 +24,9 @@ def test_DAE_mnist():
     images = mnist[0][0]
     x = images
 
-    dae = DAE(28*28, 500, True)
-    dae.train(x, x.copy(), level=0.3, n_epochs=15, batch_size=20)
-    tmp = tile_raster_images(dae.w0_, (28,28), (10,10), (1,1))
+    dae = DAE(28*28, 500, False)
+    dae.train(x, x.copy(), level=0.3, n_epochs=1, batch_size=20)
+    tmp = tile_images(dae.w0_, (28,28), (10,10), (1,1))
     pl.imshow(tmp, cmap='gray')
     pl.show()
 
@@ -70,30 +70,24 @@ def test_Net_grad_check():
         pl.show()
 
 def test_Net_ae():
-#    images = loadmat('../ufldl/data/IMAGES.mat')['IMAGES']
-#    images = np.rollaxis(images, -1, 0)
-#    patches = sample_patches(10000, 8, images)
-#    patches.shape = (-1, 8*8)
-#    x = normalize_3sigma(patches[:-5000])
-#    x = normalize_3sigma(images[:15000])
-#    x_validate = normalize_3sigma(patches[-5000:])
-
     with open('../ufldl/data/mnist.pkl', 'rb') as fp:
         mnist = pickle.load(fp)
     images = mnist[0][0]
-    x = images[:10000]
-    x_validate = images[40000:]
+    x = images
 
-    net = Net([['full', 28*28, {}],
+    net = Net([['deno', 28*28, {'level': 0.3}],
+               ['full', 28*28, {}],
                ['sig', 500, {}],
                ['full', 500, {}],
                ['sig', 28*28, {}]], base_lr=0.1, decay=0.0, momentum=0.0)
 
-    net.train(x, x, 10, 20, 1, 1, None, None, True, False)
-    tmp = tile_images(net.layers_[0].w_, (28,28), (10,10))
+    net.train(x, x, n_epochs=15, batch_size=20, loss_type=1, update_type=0, 
+                x_validate=None, y_validate=None, evaluate=False, display=False)
+    tmp = tile_images(net.layers_[1].w_, (28,28), (10,10))
     pl.imshow(tmp, cmap='gray')
     pl.show()
 
 
 if __name__ == '__main__':
+    test_Net_ae()
     test_DAE_mnist()

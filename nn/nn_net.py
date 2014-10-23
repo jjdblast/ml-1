@@ -55,7 +55,8 @@ class Net(object):
         for layer in self.layers_:
             layer.update(self.updater_, update_type)
 
-    def train(self, x, y, n_epochs=10, batch_size=128, loss_type=0, update_type=0, x_validate=None, y_validate=None, evaluate=True, display=False):
+    def train(self, x, y, n_epochs=10, batch_size=128, loss_type=0, update_type=0, 
+                x_validate=None, y_validate=None, evaluate=False, display=False):
         '''With `display` being True, train error and validation error 
            will be plotted via `ilp`, and it will make the training process
            slower, you can close the figure at any time to speed up the 
@@ -66,20 +67,21 @@ class Net(object):
 
         n_iter_passed = 0
         for i_epoch in range(n_epochs):
+            print 'epoch: {}'.format(i_epoch)
             for x_batch, y_batch in data_iterator(x, y, batch_size):
                 self.fprop(x_batch)
                 loss = self.calculate_loss(y_batch, loss_type)
                 self.bprop(loss)
                 self.update(n_iter_passed, update_type)
     
-                msg = 'iter: {}'.format(n_iter_passed)
                 if evaluate:
+                    msg = 'iter_passed: {}'.format(n_iter_passed)
                     train_error = self.evaluate(self.predict(x_batch), y_batch)
                     msg += ', train error: {}'.format(train_error)
                     if x_validate is not None and y_validate is not None:
                         validate_error = self.evaluate(self.predict(x_validate), y_validate)
                         msg += ', validate error: {}'.format(validate_error)
-                print msg
+                    print msg
 
                 if display:
                     train_error = self.evaluate(self.predict(x_batch), y_batch)

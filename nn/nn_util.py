@@ -5,6 +5,7 @@ import pylab as pl
 
 random_generator = {
     'uniform': np.random.uniform,
+    'binomial': np.random.binomial,
 }
 
 def init_weights(shape, eps=None, random_type='uniform'):
