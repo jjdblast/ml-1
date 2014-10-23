@@ -26,7 +26,7 @@ Denoising autoencoder with *corruption level=0.3* and *untied weights*:
 
 Meant to be written as the building blocks which can be used to construct easily configurable neural nets, still under construction. 
 
-There is a demo which makes use of these building blocks to construct a denoising autoencoder, here is the results of image filters on MNIST dataset.
+There is a demo in [test_net.py](nn/test_net.py) which makes use of these building blocks to construct a denoising autoencoder, here is the results of image filters on MNIST dataset.
 
 Denoising autoencoder constructed with nn building blocks, with *level=0.3* and *untied weights*:
 
