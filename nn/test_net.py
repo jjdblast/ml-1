@@ -54,10 +54,9 @@ def test_Net_dae():
                ['full', 28*28, {}],
                ['sig', 500, {}],
                ['full', 500, {}],
-               ['sig', 28*28, {}]], base_lr=0.1, decay=0.0, momentum=0.0)
+               ['sig', 28*28, {}]], loss_type=1, base_lr=0.1, decay=0.0, momentum=0.0, update_type=0)
 
-    net.train(x, x, n_epochs=15, batch_size=20, loss_type=1, update_type=0, 
-                x_validate=None, y_validate=None, evaluate=False, display=False)
+    net.train(x, x, n_epochs=15, batch_size=20, x_validate=None, y_validate=None, evaluate=False, display=False)
     tmp = tile_images(net.layers_[1].w_, (28,28), (10,10))
     pl.imshow(tmp, cmap='gray')
     pl.show()

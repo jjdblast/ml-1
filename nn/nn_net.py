@@ -4,9 +4,10 @@ from nn_util import *
 
 
 class Net(object):
-    def __init__(self, arch, **updater_kwargs):
+    def __init__(self, arch, loss_type=0, **updater_kwargs):
         self.layers_ = self.create_layers(arch)
         self.n_layers_ = len(self.layers_)
+        self.loss_type_ = loss_type
         self.updater_ = SGDUpdater(**updater_kwargs)
         self.register_updater()
 
@@ -41,22 +42,22 @@ class Net(object):
                 layer.out_ = self.layers_[i_layer+1].in_
             layer.bprop()
 
-    def calculate_loss(self, y, loss_type=0):
-        if loss_type == 0:
+    def calculate_loss(self, y):
+        if self.loss_type_ == 0:
             # squared loss derivative.
             loss = self.layers_[-1].out_ - y
-        elif loss_type == 1:
+        elif self.loss_type_ == 1:
             # cross entropy derivative.
             loss = (self.layers_[-1].out_ - y) / (self.layers_[-1].out_ - self.layers_[-1].out_**2)
         return loss
 
-    def update(self, n_iter_passed, update_type=0):
+    def update(self, n_iter_passed):
         self.updater_.schedule(n_iter_passed)
         for layer in self.layers_:
-            layer.update(self.updater_, update_type)
+            layer.update(self.updater_)
 
-    def train(self, x, y, n_epochs=10, batch_size=128, loss_type=0, update_type=0, 
-                x_validate=None, y_validate=None, evaluate=False, display=False):
+    def train(self, x, y, n_epochs=10, batch_size=128, x_validate=None, 
+                y_validate=None, evaluate=False, display=False):
         '''With `display` being True, train error and validation error 
            will be plotted via `ilp`, and it will make the training process
            slower, you can close the figure at any time to speed up the 
@@ -70,9 +71,9 @@ class Net(object):
             print 'epoch: {}'.format(i_epoch)
             for x_batch, y_batch in data_iterator(x, y, batch_size):
                 self.fprop(x_batch)
-                loss = self.calculate_loss(y_batch, loss_type)
+                loss = self.calculate_loss(y_batch)
                 self.bprop(loss)
-                self.update(n_iter_passed, update_type)
+                self.update(n_iter_passed)
     
                 if evaluate:
                     msg = 'iter_passed: {}'.format(n_iter_passed)

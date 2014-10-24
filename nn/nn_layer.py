@@ -54,9 +54,9 @@ class FullConnectLayer(ILayer):
         self.w_updater_id_ = updater.register(self.w_)
         self.b_updater_id_ = updater.register(self.b_)
 
-    def update(self, updater, update_type):
-        self.w_ = updater.update(self.w_updater_id_, self.w_, self.wgrad_, update_type)
-        self.b_ = updater.update(self.b_updater_id_, self.b_, self.bgrad_, update_type)
+    def update(self, updater):
+        self.w_ = updater.update(self.w_updater_id_, self.w_, self.wgrad_)
+        self.b_ = updater.update(self.b_updater_id_, self.b_, self.bgrad_)
 
 
 @_register_layer_class('sig')
@@ -75,7 +75,7 @@ class SigmoidLayer(ILayer):
     def bprop(self):
         self.in_ = self.out_ * self.in_ * (1 - self.in_)
 
-    def update(self, updater, update_type):
+    def update(self, updater):
         pass
 
 
@@ -95,7 +95,7 @@ class ReLULayer(ILayer):
         d[self.in_>0] = 1
         self.in_ = self.out_ * d
 
-    def update(self, updater, update_type):
+    def update(self, updater):
         pass
 
 
@@ -117,5 +117,5 @@ class DenoiseLayer(ILayer):
     def bprop(self):
         pass
 
-    def update(self, updater, update_type):
+    def update(self, updater):
         pass
