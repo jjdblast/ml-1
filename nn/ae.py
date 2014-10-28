@@ -122,10 +122,10 @@ class DAE(object):
         
         '''If the weights are tied, then could we still back propagate the error
         the usual way? In untied cases, we could do it that way because when back
-        propagate error from ith layer to (i-1)th layer, we just hold weights in
+        propagating error from ith layer to (i-1)th layer, we just hold weights in
         ith layer constant, and that's ok if the weights are not tied. However, 
         if weights are tied, we could not do that.
-        Fortunately, we could do it that way, it can be proved. When update untied
+        Fortunately, we could do it that way, it can be proved. When updating untied
         weights, we should sum up the two gradient matrices.'''
 
         d2 = (a2 - y)
