@@ -25,6 +25,8 @@ class Net(object):
             layer.register_updater(self.updater_)
 
     def fprop(self, x, is_train=True):
+        '''`is_train` for dropout layers.'''
+
         for i_layer in range(self.n_layers_):
             layer = self.layers_[i_layer]
             if i_layer == 0:
@@ -43,12 +45,19 @@ class Net(object):
             layer.bprop()
 
     def calculate_loss(self, y):
+        '''For `loss_type=2`, make sure the labels are arranged within [0,K].'''
+        # mse.
         if self.loss_type_ == 0:
-            # squared loss derivative.
             loss = self.layers_[-1].out_ - y
+        # cross entropy, multilabel Bernoulli.
         elif self.loss_type_ == 1:
-            # cross entropy derivative.
-            loss = (self.layers_[-1].out_ - y) / (self.layers_[-1].out_ - self.layers_[-1].out_**2)
+            loss = (self.layers_[-1].out_ - y) / (self.layers_[-1].out_ - self.layers_[-1].out_**2 + 1e-8)
+        # cross entropy, multiclass.
+        elif self.loss_type_ == 2:
+            # TODO: check dim of y.
+            tmp = np.zeros(self.layers_[-1].out_.shape)
+            tmp[np.arange(y.size), y] = 1
+            loss = self.layers_[-1].out_ - tmp
         return loss
 
     def update(self, n_iter_passed):
@@ -74,21 +83,21 @@ class Net(object):
                 loss = self.calculate_loss(y_batch)
                 self.bprop(loss)
                 self.update(n_iter_passed)
-    
+
                 if evaluate:
                     msg = 'iter_passed: {}'.format(n_iter_passed)
-                    train_error = self.evaluate(self.predict(x_batch), y_batch)
+                    train_error = self.evaluate(x_batch, y_batch)
                     msg += ', train error: {}'.format(train_error)
                     if x_validate is not None and y_validate is not None:
-                        validate_error = self.evaluate(self.predict(x_validate), y_validate)
+                        validate_error = self.evaluate(x_validate, y_validate)
                         msg += ', validate error: {}'.format(validate_error)
                     print msg
 
                 if display:
-                    train_error = self.evaluate(self.predict(x_batch), y_batch)
+                    train_error = self.evaluate(x_batch, y_batch)
                     ilp.update(0, ilp.count_, train_error)
                     if x_validate is not None and y_validate is not None:
-                        validate_error = self.evaluate(self.predict(x_validate), y_validate)
+                        validate_error = self.evaluate(x_validate, y_validate)
                         ilp.update(1, ilp.count_, validate_error)
                     ilp.draw()
                     ilp.count_ += 1
@@ -97,8 +106,29 @@ class Net(object):
 
     def predict(self, x):
         self.fprop(x, False)
-        return self.layers_[-1].out_
+        pred = self.layers_[-1].out_
+        if self.loss_type_ == 0:
+            return pred
+        elif self.loss_type_ == 1:
+            return pred
+        elif self.loss_type_ == 2:
+            return pred.argmax(axis=1)
 
-    def evaluate(self, pred, y):
+    def evaluate(self, x, y):
+        '''Calculate different metrics for different loss_type. For now,
+           `loss_type=0`: mse, calculate reconstruction error.
+           `loss_type=1`: multilabel Bernoulli cross entropy, calculate reconstruction error.
+           `loss_type=2`: multiclass cross entropy, calculate accuracy.
+        '''
+        self.fprop(x, False)
+        pred = self.layers_[-1].out_
         n = pred.shape[0]
-        return np.sum((pred - y)**2) / n * 0.5
+        result = 0
+        if self.loss_type_ == 0:
+            result = np.sum((pred - y)**2) / n
+        elif self.loss_type_ == 1:
+            result = np.sum((pred - y)**2) / n
+        elif self.loss_type_ == 2:
+            idx = pred.argmax(axis=1)
+            result = (idx == y).sum() / float(y.size)
+        return result

@@ -1,6 +1,7 @@
 import numpy as np
 from scipy import optimize
 import pylab as pl
+from PIL import Image
 
 
 random_generator = {
@@ -35,6 +36,14 @@ def unpack_params(params, shapes=((10,5), (5,10), (10,), (5,))):
 
 def sigmoid(x):
     return 1.0 / (1 + np.exp(-x))
+
+def softmax(x):    
+    '''2-d array, with shape (n_examples, n_features).'''
+
+    z = x - x.max(axis=1)[:, np.newaxis]
+    z = np.exp(z)
+    sum_z = z.sum(axis=1)[:, np.newaxis]
+    return z / sum_z
 
 def kl(x, x_hat):
     '''kl divergence. '''
@@ -141,3 +150,8 @@ def tile_images(data, image_shape, tile_shape, tile_spacing=(1,1)):
             tiled[top:bot, left:right] = tmp.astype('uint8')
             k += 1
     return tiled
+
+def save_image(image, f):
+    with open(f, 'wb') as fp:
+        tmp = Image.fromarray(image)
+        tmp.save(fp)

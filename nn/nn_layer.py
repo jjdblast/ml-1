@@ -119,3 +119,41 @@ class DenoiseLayer(ILayer):
 
     def update(self, updater):
         pass
+
+
+@_register_layer_class('drop')
+class DropoutLayer(ILayer):
+    def __init__(self, shape, level=0.0, **kwargs):
+        self.level_ = level
+        self.mask_ = None
+
+    def register_updater(self, updater):
+        pass
+
+    def fprop(self):
+        tmp = random_generator['binomial'](1, 1-self.level_, (1, self.in_.shape[1]))
+        self.mask_ = tmp.repeat(self.in_.shape[0], axis=0)
+        self.out_ = self.in_ * self.mask_
+
+    def bprop(self):
+        self.in_ = self.out_ * self.mask_
+
+    def update(self, updater):
+        pass
+
+@_register_layer_class('soft')
+class SoftmaxLayer(ILayer):
+    '''SoftmaxLayer is a pure activation layer, 
+       the weights are actually in the previous connection layer.'''
+
+    def __init__(self, shape, **kwargs):
+        pass
+
+    def register_updater(self, updater):
+        pass
+
+    def fprop(self):
+        self.out_ = softmax(self.in_)
+
+    def bprop(self):
+        self.in_ = self.out_

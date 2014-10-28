@@ -54,13 +54,29 @@ def test_Net_dae():
                ['full', 28*28, {}],
                ['sig', 500, {}],
                ['full', 500, {}],
-               ['sig', 28*28, {}]], loss_type=1, base_lr=0.1, decay=0.0, momentum=0.0, update_type=0)
+               ['sig', 28*28, {}]], loss_type=1, base_lr=0.1, decay=0.0, momentum=0.9, update_type=0)
 
     net.train(x, x, n_epochs=15, batch_size=20, x_validate=None, y_validate=None, evaluate=False, display=False)
     tmp = tile_images(net.layers_[1].w_, (28,28), (10,10))
     pl.imshow(tmp, cmap='gray')
     pl.show()
 
+def test_Net_drop():
+    with open('../ufldl/data/mnist.pkl', 'rb') as fp:
+        mnist = pickle.load(fp)
+    images = mnist[0][0][:20000]
+    x = images
+
+    net = Net([['drop', 28*28, {'level': 0.2}],
+               ['full', 28*28, {}],
+               ['sig', 256, {}],
+               ['drop', 256, {'level': 0.5}],
+               ['full', 256, {}],
+               ['sig', 28*28, {}]], loss_type=1, base_lr=0.1, decay=0.0, momentum=0.0, update_type=0)
+
+    net.train(x, x, n_epochs=1, batch_size=1, evaluate=False, display=False)
+    tmp = tile_images(net.layers_[1].w_, (28,28), (10,10))
+    save_image(tmp, 'pic/nn_dropout_ent_lr0.1_epoch1_batch1.png')
 
 if __name__ == '__main__':
-    test_Net_dae()
+    test_Net_drop()
