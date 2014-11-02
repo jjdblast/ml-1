@@ -7,4 +7,4 @@ This is a neural net library written in Python + Numpy, code is not updated any 
 
 # nn_theano
 
-Re-implemented nn with theano, still contributing code, here is more [nn_theano/README.md](detail) if interested, ;-).
+Re-implemented nn with theano, still contributing code, here is more [detail](nn_theano/README.md) if interested, ;-).

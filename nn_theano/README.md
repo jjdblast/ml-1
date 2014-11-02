@@ -13,10 +13,13 @@ Here are some simple examples using nn_theano, more details can be found in [tes
 # 'relu': ReLULayer, activation layer
 
 '''
-Construct a neural net via `Net`, to which the first arg is a list of lists, specifying the architecture with inside lists being specifics of each layer.
+Construct a neural net via `Net`, to which the first arg is a list of lists, 
+specifying the architecture with inside lists being specifics of each layer.
+
 For example,
     [['full', 100, {}], ['sigm', 50, {}]]
-specifies that 1st layer is a FullConnectLayer with 100 input size, and 2nd layer is a SigmoidLayer with 50 input size, more layer-specific args can be specified inside `{}`.
+specifies that 1st layer is a FullConnectLayer with 100 input size, 
+and 2nd layer is a SigmoidLayer with 50 input size, more layer-specific args can be specified inside `{}`.
 Note that, `Net` will find out the weight matrix shape of connection layer by combining the input sizes of these 2 adjacent layers.
 '''
 # build a denoising autoencoder
