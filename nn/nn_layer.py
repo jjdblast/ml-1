@@ -18,7 +18,7 @@ class ILayer(object):
         return
 
     @abc.abstractmethod
-    def fprop(self):
+    def fprop(self, is_train):
         return
 
     @abc.abstractmethod
@@ -40,7 +40,7 @@ class FullConnectLayer(ILayer):
         self.in_ = None
         self.out_ = None
 
-    def fprop(self):
+    def fprop(self, is_train=True):
         self.out_ = np.dot(self.in_, self.w_.T) + self.b_
 
     def bprop(self):
@@ -67,7 +67,7 @@ class SigmoidLayer(ILayer):
     def register_updater(self, updater):
         pass
 
-    def fprop(self):
+    def fprop(self, is_train=True):
         self.out_ = sigmoid(self.in_)
         # no need to keep input in bprop for sigmoid layer.
         self.in_ = self.out_
@@ -87,7 +87,7 @@ class ReLULayer(ILayer):
     def register_updater(self, updater):
         pass
 
-    def fprop(self):
+    def fprop(self, is_train=True):
         self.out_ = np.maximum(0, self.in_)
     
     def bprop(self):
@@ -110,7 +110,7 @@ class DenoiseLayer(ILayer):
     def register_updater(self, updater):
         pass
 
-    def fprop(self):
+    def fprop(self, is_train=True):
         mask = random_generator['binomial'](1, 1-self.level_, self.in_.shape)
         self.out_ = self.in_ * mask
 
@@ -130,10 +130,13 @@ class DropoutLayer(ILayer):
     def register_updater(self, updater):
         pass
 
-    def fprop(self):
-        tmp = random_generator['binomial'](1, 1-self.level_, (1, self.in_.shape[1]))
-        self.mask_ = tmp.repeat(self.in_.shape[0], axis=0)
-        self.out_ = self.in_ * self.mask_
+    def fprop(self, is_train=True):
+        if is_train:
+            tmp = random_generator['binomial'](1, 1-self.level_, (1, self.in_.shape[1]))
+            self.mask_ = tmp.repeat(self.in_.shape[0], axis=0)
+            self.out_ = self.in_ * self.mask_
+        else:
+            self.out_ = self.in_ * self.level_
 
     def bprop(self):
         self.in_ = self.out_ * self.mask_
@@ -152,8 +155,11 @@ class SoftmaxLayer(ILayer):
     def register_updater(self, updater):
         pass
 
-    def fprop(self):
+    def fprop(self, is_train=True):
         self.out_ = softmax(self.in_)
 
     def bprop(self):
         self.in_ = self.out_
+
+    def update(self, updater):
+        pass

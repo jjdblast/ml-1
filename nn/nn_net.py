@@ -33,7 +33,7 @@ class Net(object):
                 layer.in_ = x
             else:
                 layer.in_ = self.layers_[i_layer-1].out_
-            layer.fprop()
+            layer.fprop(is_train)
 
     def bprop(self, loss):
         for i_layer in range(self.n_layers_-1, -1, -1):
@@ -66,11 +66,17 @@ class Net(object):
             layer.update(self.updater_)
 
     def train(self, x, y, n_epochs=10, batch_size=128, x_validate=None, 
-                y_validate=None, evaluate=False, display=False):
+                y_validate=None, evaluate=False, display=False, shuffle=False):
         '''With `display` being True, train error and validation error 
            will be plotted via `ilp`, and it will make the training process
            slower, you can close the figure at any time to speed up the 
            training process.'''
+
+        if evaluate:
+            n_eval = 0
+            train_error_sum = 0
+            if x_validate is not None and y_validate is not None:
+                validate_error_sum = 0
 
         if display:
             ilp = IterLinePlotter()
@@ -78,20 +84,19 @@ class Net(object):
         n_iter_passed = 0
         for i_epoch in range(n_epochs):
             print 'epoch: {}'.format(i_epoch)
-            for x_batch, y_batch in data_iterator(x, y, batch_size):
+            for x_batch, y_batch in data_iterator(x, y, batch_size, shuffle):
                 self.fprop(x_batch)
                 loss = self.calculate_loss(y_batch)
                 self.bprop(loss)
                 self.update(n_iter_passed)
 
                 if evaluate:
-                    msg = 'iter_passed: {}'.format(n_iter_passed)
+                    n_eval += 1
                     train_error = self.evaluate(x_batch, y_batch)
-                    msg += ', train error: {}'.format(train_error)
+                    train_error_sum += train_error
                     if x_validate is not None and y_validate is not None:
                         validate_error = self.evaluate(x_validate, y_validate)
-                        msg += ', validate error: {}'.format(validate_error)
-                    print msg
+                        validate_error_sum += validate_error
 
                 if display:
                     train_error = self.evaluate(x_batch, y_batch)
@@ -103,6 +108,12 @@ class Net(object):
                     ilp.count_ += 1
 
                 n_iter_passed += 1
+
+            if evaluate:
+                msg = 'train error: {}'.format(train_error_sum / n_eval)
+                if x_validate is not None and y_validate is not None:
+                    msg += ', validate error: {}'.format(validate_error_sum / n_eval)
+                print msg
 
     def predict(self, x):
         self.fprop(x, False)
