@@ -1,4 +1,6 @@
-import numpy.distutils.__config__
+import numpy.distutils.__config__  # necessary for theano in Win7
+
+import abc
 from theano import tensor, function, shared
 from util import *
 
@@ -6,6 +8,7 @@ from util import *
 LAYER = {}
 
 class ILayer(object):
+    __metaclass__ = abc.ABCMeta
     def __init__(self, *args, **kwargs):
         pass
 
@@ -52,7 +55,6 @@ class DenoiseLayer(ILayer):
     def __init__(self, shape, level=0.0, seed=123):
         self.level_ = level
         self.rng_ = tensor.shared_randomstreams.RandomStreams(seed)
-
         self.params_ = None
 
     def fprop(self, in_, is_train=True):

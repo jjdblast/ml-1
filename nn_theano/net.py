@@ -44,9 +44,7 @@ class Net(object):
         updates = self.updater_.update(zip(self.params_, self.params_g_, self.params_updater_id_))
         return updates
 
-    def train(self, x, y, x_v=None, y_v=None, n_epochs=1, batch_size=1):
-        '''x, y, x_v, y_v are passed in as theano.shared variables.'''
-
+    def train(self, x_raw, y_raw, x_v_raw=None, y_v_raw=None, n_epochs=1, batch_size=1):
         index = tensor.iscalar('index')
         in_, out_ = tensor.dmatrices('in_', 'out_')
         if self.loss_type_ == 'cemc':
@@ -56,18 +54,26 @@ class Net(object):
         loss = LOSS[self.loss_type_](pred, out_)
         self.bprop(loss)
 
+        # for training
         epoch = tensor.iscalar('epoch')
         updates = self.update(epoch)
+        x = shared(x_raw, borrow=True)
+        y = shared(y_raw, borrow=True)
+
         train_f = function([index, epoch], loss, updates=updates, on_unused_input='ignore',
                            givens={in_: x[index : index + batch_size],
                                    out_: y[index : index + batch_size]}
                   )
         n = x.get_value().shape[0]
 
-        is_validate = (x_v is not None and y_v is not None)
+        # for validation
+        is_validate = (x_v_raw is not None and y_v_raw is not None)
         if is_validate:
             v_pred = self.fprop(in_, is_train=False)
             v_error = ERROR[self.loss_type_](v_pred, out_)
+            x_v = shared(x_v_raw, borrow=True)
+            y_v = shared(y_v_raw, borrow=True)
+
             validate_f = function([index], v_error, on_unused_input='ignore',
                                   givens={in_: x_v[index : index + batch_size],
                                           out_: y_v[index : index + batch_size]}
@@ -86,8 +92,10 @@ class Net(object):
         end_time = time.clock()
         print 'time consumed: {}'.format((end_time - start_time) / 60.)
 
-    def predict(self, x):
+    def predict(self, x_raw):
+        x = tensor.dmatrix('x')
         pred = self.fprop(x, is_train=False)
         if self.loss_type_ == 'cemc':
             pred = pred.argmax(axis=1)
-        return pred
+        pred_f = function([x], pred)
+        return pred_f(x_raw)
