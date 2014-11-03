@@ -1,6 +1,6 @@
 # nn_theano
 
-Theano is good, but I'm not quite comfortable with Pylearn2, so trying to write a easily configurable neural net library.
+Theano is good, but I'm not quite comfortable with Pylearn2, so trying to write an easily configurable neural net library.
 
 Here are some simple examples using nn_theano, more details can be found in [test.py](test.py).
 
