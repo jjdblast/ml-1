@@ -19,8 +19,11 @@ specifying the architecture with inside lists being specifics of each layer.
 For example,
     [['full', 100, {}], ['sigm', 50, {}]]
 specifies that 1st layer is a FullConnectLayer with 100 input size, 
-and 2nd layer is a SigmoidLayer with 50 input size, more layer-specific args can be specified inside `{}`.
-Note that, `Net` will find out the weight matrix shape of connection layer by combining the input sizes of these 2 adjacent layers.
+and 2nd layer is a SigmoidLayer with 50 input size, more layer-specific args 
+can be specified inside `{}`.
+
+Note that, `Net` will find out the weight matrix shape of connection layer 
+by combining the input sizes of these 2 adjacent layers.
 '''
 # build a denoising autoencoder
 dae = Net([['deno', 100, {'level': 0.2}],
@@ -39,7 +42,8 @@ dae = Net([['deno', 100, {'level': 0.2}],
          )
 
 '''
-Since it's all based on theano, you should pack your data into tehano.shared variables before using them.
+Since it's all based on theano, you should pack your data into theano.shared 
+variables before using them.
 '''
 # pack data into theano objects
 raw_x = np.random.rand(50, 100)
@@ -52,5 +56,6 @@ dae.train(x=x, y=x,   # training data
           x_v=x_validate, y_v=x_validate,  # validation data
           n_epochs=10, batch_size=20)
 
-```
+pred = dae.predict(x)
 
+```
