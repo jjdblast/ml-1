@@ -58,9 +58,9 @@ def test_net_dropout_ae():
 
     net = Net([['drop', 28*28, {'level': 0.2}],
                ['full', 28*28, {}],
-               ['sigm', 500, {}],
-               ['drop', 500, {'level': 0.5}],
-               ['full', 500, {}],
+               ['sigm', 128, {}],
+               ['drop', 128, {'level': 0.5}],
+               ['full', 128, {}],
                ['sigm', 28*28, {}]],
               loss_type='ceml',
               updater_args={'base_lr': 0.1})
@@ -73,4 +73,4 @@ def test_net_dropout_ae():
 
 
 if __name__ == '__main__':
-    test_net_dae()
+    test_net_dropout_ae()

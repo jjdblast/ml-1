@@ -72,8 +72,7 @@ class DropoutLayer(ILayer):
 
     def fprop(self, in_, is_train=True):
         if is_train:
-            self.mask_ = self.rng_.binomial(size=(1, in_.shape[1]), n=1, p=1-self.level_)
-            self.mask_ = self.mask_.repeat(in_.shape[0], axis=0)
+            self.mask_ = self.rng_.binomial(size=in_.shape, n=1, p=1-self.level_)
             self.out_ = in_ * self.mask_
         else:
             self.out_ = in_ * (1-self.level_)
