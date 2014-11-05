@@ -14,7 +14,7 @@ def test_net_dae():
     x = mnist[0][0].astype(np.float64)
     x_v = mnist[1][0].astype(np.float64)
 
-    net = Net([['deno', 28*28, {'level': 0.5, 'noise': 'gaussian'}],
+    net = Net([['deno', 28*28, {'level': 0.5, 'noise': 'binomial'}],
                ['full', 28*28, {}],
                ['sigm', 200, {}],
                ['full', 200, {}],
@@ -22,7 +22,7 @@ def test_net_dae():
               loss_type='ceml')
 
     print time.ctime()
-    net.train(x, x, x_v_raw=x_v, y_v_raw=x_v, n_epochs=10, batch_size=20)
+    net.train(x, x, x_v_raw=x_v, y_v_raw=x_v, n_epochs=20, batch_size=20)
     print time.ctime()
     filters = tile_images(net.layers_[1].w_.get_value(),
                           (28, 28), (10, 10))
@@ -57,16 +57,16 @@ def test_net_dropout_ae():
     x = mnist[0][0].astype(np.float64)
     x_v = mnist[1][0].astype(np.float64)
 
-    net = Net([['drop', 28*28, {'level': 0.2}],
+    net = Net([['deno', 28*28, {'level': 0.5, 'noise': 'binomial'}],
                ['full', 28*28, {}],
-               ['sigm', 128, {}],
-               ['drop', 128, {'level': 0.5}],
-               ['full', 128, {}],
+               ['sigm', 200, {}],
+               ['drop', 200, {'level': 0.5}],
+               ['full', 200, {}],
                ['sigm', 28*28, {}]],
               loss_type='ceml',
               updater_args={'base_lr': 0.1})
     print time.ctime()
-    net.train(x, x, x_v_raw=x_v, y_v_raw=x_v, n_epochs=10, batch_size=20)
+    net.train(x, x, x_v_raw=x_v, y_v_raw=x_v, n_epochs=20, batch_size=20)
     print time.ctime()
     filters = tile_images(net.layers_[1].w_.get_value(),
                           (28, 28), (10, 10))
@@ -74,4 +74,4 @@ def test_net_dropout_ae():
 
 
 if __name__ == '__main__':
-    test_net_dae()
+    test_net_dropout_ae()

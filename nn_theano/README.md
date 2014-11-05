@@ -25,37 +25,52 @@ can be specified inside `{}`.
 Note that, `Net` will find out the weight matrix shape of connection layer 
 by combining the input sizes of these 2 adjacent layers.
 '''
-# build a denoising autoencoder
-dae = Net([['deno', 100, {'level': 0.2}],
-           ['full', 100, {}],
-           ['sigm', 50, {}],
-           ['full', 50, {}],
-           ['sigm', 100, {}]],  # architecture
 
-          loss_type='ceml',  # cross entropy, multilabel Bernoulli
+# Below is an example (taken from test.py) of building a denoising autoencoder
+
+# load MNIST data
+with open('../ufldl/data/mnist.pkl', 'rb') as fp:
+        mnist = pickle.load(fp)
+
+x = mnist[0][0].astype(np.float64)  # for training
+x_v = mnist[1][0].astype(np.float64)  # for validation, optional
+
+# define the neural net
+net = Net([['deno', 28*28, {'level': 0.5, 'noise': 'binomial'}],
+           ['full', 28*28, {}],
+           ['sigm', 200, {}],
+           ['full', 200, {}],
+           ['sigm', 28*28, {}]],  # architecture
+
+          loss_type='ceml',  # cross-entropy, multilabel Bernoulli
+
           updater_args={
-            'base_lr': 0.1,
-            'l2_decay': 0.0,
-            'tune_lr_type': 0,
-            'update_type': 0
-          }  # parameters for sgd optimization
-         )
+            'base_lr': 0.1,  # base learning rate
+            'l2_decay': 0.0,  # l2 regularization
+            'tune_lr_type': 0,  # how to vary the learning rate as training preceeds
+                                # here `0` means constant learning rate
+            'update_type': 0  # how to update weights, 
+                              # here `0` means no decay or momentum considered
+          })
 
-'''
-Since it's all based on theano, you should pack your data into theano.shared 
-variables before using them.
-'''
-# pack data into theano objects
-raw_x = np.random.rand(50, 100)
-raw_x_validate = np.random.rand(50, 100)
-
-x = theano.shared(raw_x, borrow=True)  # pack
-x_validate = theano.shared(raw_x_validate, borrow=True)
-
-dae.train(x=x, y=x,   # training data
-          x_v=x_validate, y_v=x_validate,  # validation data
-          n_epochs=10, batch_size=20)
-
-pred = dae.predict(x)
-
+    print time.ctime()
+    net.train(x, x, x_v_raw=x_v, y_v_raw=x_v, n_epochs=20, batch_size=20)
+    print time.ctime()
+    filters = tile_images(net.layers_[1].w_.get_value(),
+                          (28, 28), (10, 10))
+    save_image(filters, 'pic/dae.png')
 ```
+
+Here are some images of filters learnt by the above denoising autoencoder.
+
+Binomial noise (0.5):
+
+![alt_text](pic/dae_binom0.5_hidden_200_epoch20_batch20.png)
+
+Gaussian noise (0.5):
+
+![alt_text](pic/dae_gauss0.5_hidden_200_epoch20_batch20.png)
+
+Binomial noise (0.5) with dropout (0.5) in hidden layer:
+
+![alt_text](pic/dae_drop_binom0.5_hidden200_epoch20_batch20.png)
