@@ -52,14 +52,19 @@ class SoftmaxLayer(ILayer):
 
 @register(LAYER, 'deno')
 class DenoiseLayer(ILayer):
-    def __init__(self, shape, level=0.0, seed=123):
+    def __init__(self, shape, level=0.0, noise='binomial', seed=123):
         self.level_ = level
+        self.noise_ = noise
         self.rng_ = tensor.shared_randomstreams.RandomStreams(seed)
         self.params_ = None
 
     def fprop(self, in_, is_train=True):
-        self.mask_ = self.rng_.binomial(size=in_.shape, n=1, p=1-self.level_)
-        self.out_ = in_ * self.mask_
+        if self.noise_ == 'binomial':
+            self.mask_ = self.rng_.binomial(size=in_.shape, n=1, p=1-self.level_)
+            self.out_ = in_ * self.mask_
+        elif self.noise_ == 'gaussian':
+            self.mask_ = self.rng_.normal(size=in_.shape, std=self.level_)
+            self.out_ = in_ + self.mask_
         return self.out_
 
 

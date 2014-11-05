@@ -14,10 +14,10 @@ def test_net_dae():
     x = mnist[0][0].astype(np.float64)
     x_v = mnist[1][0].astype(np.float64)
 
-    net = Net([['deno', 28*28, {'level': 0.3}],
+    net = Net([['deno', 28*28, {'level': 0.5, 'noise': 'gaussian'}],
                ['full', 28*28, {}],
-               ['sigm', 500, {}],
-               ['full', 500, {}],
+               ['sigm', 200, {}],
+               ['full', 200, {}],
                ['sigm', 28*28, {}]],
               loss_type='ceml')
 
@@ -39,6 +39,7 @@ def test_net_soft():
     net = Net([['drop', 28*28, {'level': 0.2}],
                ['full', 28*28, {}],
                ['sigm', 100, {}],
+               ['drop', 28*28, {'level': 0.3}],
                ['full', 100, {}],
                ['soft', 10, {}]],
               loss_type='cemc',
@@ -73,4 +74,4 @@ def test_net_dropout_ae():
 
 
 if __name__ == '__main__':
-    test_net_dropout_ae()
+    test_net_dae()
