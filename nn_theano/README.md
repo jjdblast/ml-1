@@ -65,11 +65,11 @@ Here are some images of filters learnt by the above denoising autoencoder.
 
 Binomial noise (0.5):
 
-![alt_text](pic/dae_binom0.5_hidden_200_epoch20_batch20.png)
+![alt_text](pic/dae_binom0.5_hidden200_epoch20_batch20.png)
 
 Gaussian noise (0.5):
 
-![alt_text](pic/dae_gauss0.5_hidden_200_epoch20_batch20.png)
+![alt_text](pic/dae_gauss0.5_hidden200_epoch20_batch20.png)
 
 Binomial noise (0.5) with dropout (0.5) in hidden layer:
 
